@@ -140,6 +140,7 @@ int main(int argc, char** argv) {
   test_main_thread();
 
   if (filename) {
+    ProfilerRestartDisabled();
     ProfilerStop();
   }
 

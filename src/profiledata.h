@@ -85,6 +85,9 @@ class ProfileData {
     int      samples_gathered;    // Number of samples gathered to far (or 0)
   };
 
+  void enable();
+  void disable();
+
   class Options {
    public:
     Options();
@@ -139,6 +142,8 @@ class ProfileData {
   // Is data collection currently enabled?
   bool enabled() const { return out_ >= 0; }
 
+  bool my_enabled() const { return my_enabled_; }
+
   // Get the current state of the data collector.
   void GetCurrentState(State* state) const;
 
@@ -171,6 +176,7 @@ class ProfileData {
   size_t        total_bytes_;   // How much output
   char*         fname_;         // Profile file name
   time_t        start_time_;    // Start time, or 0
+  bool          my_enabled_;
 
   // Move 'entry' to the eviction buffer.
   void Evict(const Entry& entry);

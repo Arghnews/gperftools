@@ -132,7 +132,7 @@ class ProfileHandler {
   // Largest allowed frequency.
   static const int32 kMaxFrequency = 4000;
   // Default frequency.
-  static const int32 kDefaultFrequency = 100;
+  static const int32 kDefaultFrequency = 2000;
 
   // ProfileHandler singleton.
   static ProfileHandler* instance_;

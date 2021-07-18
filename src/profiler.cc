@@ -40,6 +40,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
+#include <cstdio>
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>  // for getpid()
@@ -101,6 +102,9 @@ class CpuProfiler {
   void FlushTable();
 
   bool Enabled();
+
+  void Enable();
+  void Disable();
 
   void GetCurrentState(ProfilerState* state);
 
@@ -256,7 +260,29 @@ bool CpuProfiler::Start(const char* fname, const ProfilerOptions* options) {
   return true;
 }
 
+void CpuProfiler::Enable()
+{
+  SpinLockHolder cl(&lock_);
+  if (!collector_.my_enabled())
+  {
+    collector_.enable();
+  }
+}
+
+void CpuProfiler::Disable()
+{
+  SpinLockHolder cl(&lock_);
+  if (collector_.my_enabled())
+  {
+    collector_.disable();
+  }
+}
+
 CpuProfiler::~CpuProfiler() {
+  // puts("DESTRUCTOR called");
+  // puts(__FUNCTION__);
+  // puts(__LINE__);
+  // puts(__FILE__);
   Stop();
 }
 
@@ -402,6 +428,41 @@ extern "C" PERFTOOLS_DLL_DECL void ProfilerGetCurrentState(
   CpuProfiler::instance_.GetCurrentState(state);
 }
 
+// DEPRECATED routines
+extern "C" PERFTOOLS_DLL_DECL void ProfilerEnable() {
+  CpuProfiler::instance_.Enable();
+}
+
+extern "C" PERFTOOLS_DLL_DECL void ProfilerDisable() {
+  CpuProfiler::instance_.Disable();
+}
+
+extern "C" PERFTOOLS_DLL_DECL void ProfilerRestartDisabled() {
+  // puts("ProfilerRestart called, assigning new CpuProfiler instance to static");
+  // puts("Destructing CpuProfiler");
+  // CpuProfiler::instance_.~CpuProfiler();
+
+  if (getenv("CPUPROFILE") == NULL) {
+    RAW_LOG(WARNING, "CPU profiler linked but no valid CPUPROFILE environment variable found for ProfilerRestartDisabled\n");
+    return;
+  }
+  ProfilerState state;
+  ProfilerGetCurrentState(&state);
+  const char* fname = state.profile_name;
+  // std::printf("Profiler restarted using filename: %s", fname);
+  ProfilerStop();
+  if(!ProfilerStart(fname)) {
+    RAW_LOG(FATAL, "Unable to restart profiling for '%s': %s\n",
+            fname, strerror(errno));
+  }
+  ProfilerDisable();
+  // puts("Placement new of new CpuProfiler instance");
+  // ::new (&CpuProfiler::instance_) CpuProfiler();
+  // CpuProfiler::instance_ = CpuProfiler();
+  // puts("Profiler restarted, disabling...");
+  // puts("ProfilerRestart ends");
+}
+
 #else  // OS_CYGWIN
 
 // ITIMER_PROF doesn't work under cygwin.  ITIMER_REAL is available, but doesn't
@@ -423,6 +484,3 @@ extern "C" void ProfilerGetCurrentState(ProfilerState* state) {
 
 #endif  // OS_CYGWIN
 
-// DEPRECATED routines
-extern "C" PERFTOOLS_DLL_DECL void ProfilerEnable() { }
-extern "C" PERFTOOLS_DLL_DECL void ProfilerDisable() { }

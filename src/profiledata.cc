@@ -86,7 +86,24 @@ ProfileData::ProfileData()
       evictions_(0),
       total_bytes_(0),
       fname_(0),
-      start_time_(0) {
+      start_time_(0),
+      my_enabled_(true) {
+}
+
+void ProfileData::enable()
+{
+  if (!my_enabled_)
+  {
+    my_enabled_ = true;
+  }
+}
+
+void ProfileData::disable()
+{
+  if (my_enabled_)
+  {
+    my_enabled_ = false;
+  }
 }
 
 bool ProfileData::Start(const char* fname,
@@ -96,6 +113,7 @@ bool ProfileData::Start(const char* fname,
   }
 
   // Open output file and initialize various data structures
+  // puts("I am called and am deleting the open file, in profiledata.cc: ProfileData::Start");
   int fd = open(fname, O_CREAT | O_WRONLY | O_TRUNC, 0666);
   if (fd < 0) {
     // Can't open outfile for write
@@ -259,9 +277,12 @@ void ProfileData::FlushTable() {
 }
 
 void ProfileData::Add(int depth, const void* const* stack) {
-  if (!enabled()) {
+  if (!enabled() || !my_enabled()) {
+  // if (!enabled()) {
     return;
   }
+
+  // puts("In ProfileData::Add, adding!");
 
   if (depth > kMaxStackDepth) depth = kMaxStackDepth;
   RAW_CHECK(depth > 0, "ProfileData::Add depth <= 0");

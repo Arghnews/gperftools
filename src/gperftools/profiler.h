@@ -142,9 +142,24 @@ PERFTOOLS_DLL_DECL void ProfilerFlush(void);
 
 /* DEPRECATED: these functions were used to enable/disable profiling
  * in the current thread, but no longer do anything.
+ *
+ * These can be used to stop recording profiling data or restart it.
+ * ProfilerStart must have already been called.
+ * These are not for use with threads (at least currently).
+ * Idea being ProfilerRestartDisabled() is called
+ * Then may use as:
+ *
+ * ProfilerRestartDisabled()
+ * // Section of code don't want to time
+ * ProfilerEnable()
+ * // Section of code DO want to time
+ * ProfilerDisable()
  */
 PERFTOOLS_DLL_DECL void ProfilerEnable(void);
 PERFTOOLS_DLL_DECL void ProfilerDisable(void);
+
+// See ProfilerEnable()/ProfilerDisable()
+PERFTOOLS_DLL_DECL void ProfilerRestartDisabled(void);
 
 /* Returns nonzero if profile is currently enabled, zero if it's not. */
 PERFTOOLS_DLL_DECL int ProfilingIsEnabledForAllThreads(void);
