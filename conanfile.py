@@ -4,7 +4,7 @@ import os
 
 class GperftoolsConan(ConanFile):
     name = "gperftools"
-    version = "0.1"
+    version = "0.1.1"
     license = "<Put the package license here>"
     author = "<Put your name here> <And your email here>"
     url = "<Package recipe repository url here, for issues about the package>"
@@ -13,7 +13,6 @@ class GperftoolsConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}
-    generators = "cmake"
     exports_sources = "*"
 
     def config_options(self):
